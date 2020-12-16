@@ -15,6 +15,7 @@ namespace SHOP.Services
             var key = Encoding.ASCII.GetBytes(Settings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
+                //Aqui criamos os payloads do token
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name , user.Id.ToString()),

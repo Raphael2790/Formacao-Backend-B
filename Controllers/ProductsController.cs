@@ -7,107 +7,111 @@ using Microsoft.EntityFrameworkCore;
 using SHOP.Data;
 using SHOP.Models;
 
-[Route("products")]
-public class ProductsController : ControllerBase
+namespace SHOP.Controllers
 {
-   [HttpGet]
-    public async Task<ActionResult<List<Product>>> Get([FromServices] DataContext context) 
+
+    [Route("products")]
+    public class ProductsController : ControllerBase
     {
-        try
-        {
-            var products = await context
-            .Products
-            //Fazer um join com a tabela categoria para buscar somente produtos com categoria cadastrada
-            .Include(x => x.Category)
-            .AsNoTracking()
-            //Todos tipos de manipulação dos dados devem ser feito antes de Listar
-            //Ex: OrderBy, Sort, Filter, etc
-            .ToListAsync();
-
-            if(products.Count == 0)
-            return NotFound(new { message = "Não foram encontradas produtos registrados"});
-
-            return Ok(products);
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new {message = "Desculpe, aconteceu um erro, tente novamente mais tarde"});
-        }
-    }
-
     [HttpGet]
-    [Route("{id:int}")]
-    public async Task<ActionResult<Product>> GetById(
-        int id, 
-        [FromServices] DataContext context
-        ) 
-    {
-        try
+        public async Task<ActionResult<List<Product>>> Get([FromServices] DataContext context) 
         {
-            var product = await context
-            .Products
-            //Fazer um join com a tabela categoria para buscar somente produtos com categoria cadastrada
-            .Include(x => x.Category)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+            try
+            {
+                var products = await context
+                .Products
+                //Fazer um join com a tabela categoria para buscar somente produtos com categoria cadastrada
+                .Include(x => x.Category)
+                .AsNoTracking()
+                //Todos tipos de manipulação dos dados devem ser feito antes de Listar
+                //Ex: OrderBy, Sort, Filter, etc
+                .ToListAsync();
 
-            if(product == null)
-            return NotFound(new { message = "Não foi encontrado o produto registrado"});
+                if(products.Count == 0)
+                return NotFound(new { message = "Não foram encontradas produtos registrados"});
 
-            return Ok(product);
+                return Ok(products);
+            }
+            catch (System.Exception)
+            {
+                return BadRequest(new {message = "Desculpe, aconteceu um erro, tente novamente mais tarde"});
+            }
         }
-        catch (System.Exception)
-        {
-            return BadRequest(new {message = "Desculpe, aconteceu um erro, tente novamente mais tarde"});
-        }
-    }
 
-    [HttpGet]
-    [Route("categories/{id:int}")]
-    public async Task<ActionResult<List<Product>>> GetByCategoryId(
-        int id, 
-        [FromServices] DataContext context
-        ) 
-    {
-        try
+        [HttpGet]
+        [Route("{id:int}")]
+        public async Task<ActionResult<Product>> GetById(
+            int id, 
+            [FromServices] DataContext context
+            ) 
         {
-            var products = await context
-            .Products
-            //Fazer um join com a tabela categoria para buscar somente produtos com categoria cadastrada
-            .Include(x => x.Category)
-            .AsNoTracking()
-            .Where(x => x.CategoryId == id)
-            .ToListAsync();
+            try
+            {
+                var product = await context
+                .Products
+                //Fazer um join com a tabela categoria para buscar somente produtos com categoria cadastrada
+                .Include(x => x.Category)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-            if(products.Count == 0)
-            return NotFound(new { message = "Não foram encontrados produtos registrados nesta categoria"});
+                if(product == null)
+                return NotFound(new { message = "Não foi encontrado o produto registrado"});
 
-            return Ok(products);
+                return Ok(product);
+            }
+            catch (System.Exception)
+            {
+                return BadRequest(new {message = "Desculpe, aconteceu um erro, tente novamente mais tarde"});
+            }
         }
-        catch (Exception)
-        {
-            return BadRequest(new {message = "Desculpe, aconteceu um erro, tente novamente mais tarde"});
-        }
-    }
 
-    [HttpPost]
-    [Route("")]
-    public async Task<ActionResult<Product>> Post(
-        [FromBody] Product model,
-        [FromServices] DataContext context
-        )
-    {
-        if(!ModelState.IsValid)
-        return BadRequest(ModelState);
-        try
+        [HttpGet]
+        [Route("categories/{id:int}")]
+        public async Task<ActionResult<List<Product>>> GetByCategoryId(
+            int id, 
+            [FromServices] DataContext context
+            ) 
         {
-            context.Products.Add(model);
-            await context.SaveChangesAsync();
-            return Ok(model);
+            try
+            {
+                var products = await context
+                .Products
+                //Fazer um join com a tabela categoria para buscar somente produtos com categoria cadastrada
+                .Include(x => x.Category)
+                .AsNoTracking()
+                .Where(x => x.CategoryId == id)
+                .ToListAsync();
+
+                if(products.Count == 0)
+                return NotFound(new { message = "Não foram encontrados produtos registrados nesta categoria"});
+
+                return Ok(products);
+            }
+            catch (Exception)
+            {
+                return BadRequest(new {message = "Desculpe, aconteceu um erro, tente novamente mais tarde"});
+            }
         }
-        catch (System.Exception)
+
+        [HttpPost]
+        [Route("")]
+        public async Task<ActionResult<Product>> Post(
+            [FromBody] Product model,
+            [FromServices] DataContext context
+            )
         {
-            return BadRequest(new { message = "Não foi possível concluir a operação, tente mais tarde"});
+            if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+            try
+            {
+                context.Products.Add(model);
+                await context.SaveChangesAsync();
+                return Ok(model);
+            }
+            catch (System.Exception)
+            {
+                return BadRequest(new { message = "Não foi possível concluir a operação, tente mais tarde"});
+            }
         }
     }
 }
