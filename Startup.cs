@@ -1,12 +1,15 @@
+using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SHOP.Data;
 
 namespace SHOP
@@ -23,6 +26,18 @@ namespace SHOP
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {   
+            //adiciona a possibilidade chamadas cross-domain
+            services.AddCors();
+            //adicionando ao services compressão para gerar arquivos zip do tipo JSON
+            services.AddResponseCompression(options =>
+            {   
+                options.Providers.Add<GzipCompressionProvider>();
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] {"application/json"});
+            });
+
+            //adiciona cache a toda a aplicação
+            //services.AddResponseCaching();
+
             //adicionando os controller ao services
             services.AddControllers();
 
@@ -47,11 +62,15 @@ namespace SHOP
                 };
             } 
             );
-            //adicionando o contexto de banco de dados ao services
-            //services.AddDbContext<DataContext>(opt => opt.UseInMemoryDatabase("Database"));
-            services.AddDbContext<DataContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("connectionString")));
-            //adicionando o tipo de conexão e servindo o contexto dentro da aplicação
-            services.AddScoped<DataContext, DataContext>();
+            //adicionando o contexto de banco de dados ao services e aplicando o contexto global
+            services.AddDbContext<DataContext>(opt => opt.UseInMemoryDatabase("Database"));
+            //services.AddDbContext<DataContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("connectionString")));
+
+            //adiocionado documentação para a APi via Swagger
+            services.AddSwaggerGen(c => 
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo{ Title = "Shop Api", Version = "v1"});
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -64,7 +83,20 @@ namespace SHOP
 
             app.UseHttpsRedirection();
 
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c => {
+                c.SwaggerEndpoint("v1/swagger.json", "Shop Api V1");
+            });
+
             app.UseRouting();
+
+            //tirando politica de restrições para cabeçalhos, metodos http e origens
+            app.UseCors( x => x 
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyOrigin()
+            );
 
             //Ordem muito importante autenticação e autorização
             //Ambos são middlewares dentro da aplicação

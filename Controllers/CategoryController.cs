@@ -16,6 +16,10 @@ namespace SHOP.Controllers
         [Route("")]
         [HttpGet]
         [AllowAnonymous]
+        //cria um cache dos dos retornados por esta rota independente onde seja chamada
+        [ResponseCache(VaryByHeader = "User-Agent", Location = ResponseCacheLocation.Any, Duration = 30)]
+        //evita que o retorno desta rota seja cacheado
+        //[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<ActionResult<List<Category>>> Get([FromServices] DataContext context) 
         {
             try
