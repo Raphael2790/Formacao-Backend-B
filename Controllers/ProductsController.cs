@@ -18,7 +18,6 @@ namespace SHOP.Controllers
     {
         [HttpGet]
         [Route("")]
-        [Authorize(Roles = "employee")]
         public async Task<ActionResult<List<Product>>> Get([FromServices] DataContext context) 
         {
             try
@@ -45,7 +44,6 @@ namespace SHOP.Controllers
 
         [HttpGet]
         [Route("{id:int}")]
-        [Authorize(Roles = "employee")]
         public async Task<ActionResult<Product>> GetById(
             int id, 
             [FromServices] DataContext context
