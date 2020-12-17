@@ -11,9 +11,57 @@ using SHOP.Services;
 
 namespace SHOP.Controllers
 {
-    [Route("users")]
+    [Route("v1/users")]
     public class UserController : ControllerBase
     {
+        [HttpGet]
+        [Route("")]
+        [Authorize(Roles = "manager")]
+        public async Task<ActionResult<List<User>>> GetAction(
+            [FromServices] DataContext context
+        )
+        {   
+            try
+            {
+                var users = await context.Users
+                .AsNoTracking()
+                .ToListAsync();
+
+                if(users.Count == 0)
+                return NotFound(new {message = "Não foram encotrados usuários cadastrados"});
+
+                return Ok(users);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Desculpe mas não foi possível realizar a consulta, tente mais tarde"});
+            }
+        }
+
+        [HttpGet]
+        [Route("{id:int}")]
+        [Authorize(Roles = "manager")]
+        public async Task<ActionResult<User>> GetById(
+            int id,
+            [FromServices] DataContext context
+        )
+        {
+            try
+            {
+                var user = await context.Users
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+                if(user == null)
+                return NotFound(new { messsage = "Usuário não encontrado"});
+
+                return Ok(user);
+            }
+            catch
+            {
+                return BadRequest(new {message = "Desculpe mas não foi possível retornar o usuário, tente mais tarde"});
+            }
+        }
+        
         [HttpPost]
         [Route("")]
         [AllowAnonymous]
@@ -38,6 +86,7 @@ namespace SHOP.Controllers
 
         [HttpPost]
         [Route("login")]
+        [AllowAnonymous]
         //Ao usar o dynamic podemos retornar tipos dinâmicos ao invès de tipados
         public async Task<ActionResult<dynamic>> Authenticate(
             [FromServices] DataContext context,
@@ -60,6 +109,37 @@ namespace SHOP.Controllers
                 userRole = user.Role,
                 token=  token
             };
+        }
+
+        [HttpPut]
+        [Route("{id:int}")]
+        [Authorize(Roles = "manager")]
+        public async Task<ActionResult<User>> Put(
+            int id,
+            [FromBody] User model,
+            [FromServices] DataContext context
+        )
+        {
+            if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+            if(id != model.Id)
+            return NotFound(new {message = "Usuário não encontrado"});
+
+            try
+            {
+                context.Entry(model).State = EntityState.Modified;
+                await context.SaveChangesAsync();
+                return Ok(new {message = "Usuário alterado com sucesso", user = model});
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return BadRequest(new {message = "O registro está sendo alterado, tente mais tarde"});
+            }
+            catch
+            {
+                return BadRequest(new {message = "Desculpe mas não foi possível concluir a alteração, tente mais tarde"});
+            }
         }
 
         [HttpDelete]

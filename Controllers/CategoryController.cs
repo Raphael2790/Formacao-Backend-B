@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SHOP.Data;
@@ -8,12 +9,13 @@ using SHOP.Models;
 
 namespace SHOP.Controllers
 {
-    [Route("categories")]
+    [Route("v1/categories")]
     public class CategoryController : ControllerBase
     {
         //define uma rota filha dentro do controlador da API
         [Route("")]
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<Category>>> Get([FromServices] DataContext context) 
         {
             try
@@ -34,6 +36,7 @@ namespace SHOP.Controllers
         //estado retornado caso o parametro não seja um inteiro será 404 Not Found
         [HttpGet]
         [Route("{id:int}")]
+        [AllowAnonymous]
         //Criando Tasks podemos trabalhar com multiplas threads e assincronismo (paralelismo)
         public async Task<ActionResult<Category>> GetById(int id, [FromServices] DataContext context) 
         {
@@ -56,6 +59,7 @@ namespace SHOP.Controllers
 
         [HttpPost]
         [Route("")]
+        [Authorize(Roles = "employee")]
         //Action Result permite devolver como respostas status code e um tipo definido quando necessário
         public async Task<ActionResult<Category>> Post([FromBody]Category model, [FromServices] DataContext context) 
         {
@@ -78,6 +82,7 @@ namespace SHOP.Controllers
 
         [HttpPut]
         [Route("{id:int}")]
+        [Authorize(Roles = "employee")]
         public async Task<ActionResult<Category>> Put(
             int id,
             [FromBody] Category model,
@@ -108,6 +113,7 @@ namespace SHOP.Controllers
 
         [HttpDelete]
         [Route("{id:int}")]
+        [Authorize(Roles = "employee")]
         public async Task<ActionResult<Category>> Delete(
             int id,
             [FromServices] DataContext context
