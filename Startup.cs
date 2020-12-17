@@ -63,8 +63,8 @@ namespace SHOP
             } 
             );
             //adicionando o contexto de banco de dados ao services e aplicando o contexto global
-            services.AddDbContext<DataContext>(opt => opt.UseInMemoryDatabase("Database"));
-            //services.AddDbContext<DataContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("connectionString")));
+            //services.AddDbContext<DataContext>(opt => opt.UseInMemoryDatabase("Database"));
+            services.AddDbContext<DataContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("connectionString")));
 
             //adiocionado documentação para a APi via Swagger
             services.AddSwaggerGen(c => 
